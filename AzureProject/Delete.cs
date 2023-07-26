@@ -1,5 +1,4 @@
 ﻿using AzureProject.Model;
-using HttpTriggerProj;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Azure.Functions.Worker;

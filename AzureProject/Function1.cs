@@ -1,30 +1,36 @@
-using System.Net;
-using Microsoft.Azure.Functions.Worker;
-using Microsoft.Azure.Functions.Worker.Http;
+using System.IO;
+using System.Threading.Tasks;
+using Microsoft.Azure.WebJobs;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
+using Microsoft.Azure.Functions.Worker;
 
 namespace AzureProject
 {
-    public class Function1
+    public static class Function1
     {
-        private readonly ILogger _logger;
-
-        public Function1(ILoggerFactory loggerFactory)
+        [FunctionName("Function1")]
+        public static async Task<IActionResult> Run( 
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequest req,
+            ILogger log)
         {
-            _logger = loggerFactory.CreateLogger<Function1>();
-        }
+          
+            //log.LogInformation("C# HTTP trigger function processed a request.");
 
-        [Function("Function1")]
-        public HttpResponseData Run([HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req)
-        {
-            _logger.LogInformation("C# HTTP trigger function processed a request.");
+            // Parse query parameter
+            string name = req.Query["name"];
 
-            var response = req.CreateResponse(HttpStatusCode.OK);
-            response.Headers.Add("Content-Type", "text/plain; charset=utf-8");
+            string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
+            dynamic data = JsonConvert.DeserializeObject(requestBody);
+            name = name ?? data?.name;
 
-            response.WriteString("Welcome to Azure Functions!");
+            string responseMessage = string.IsNullOrEmpty(name)
+                ? "No query string passed."
+                : $"Hello, {name}. This HTTP triggered function executed successfully.";
 
-            return response;
+            return new OkObjectResult(responseMessage);
         }
     }
 }
